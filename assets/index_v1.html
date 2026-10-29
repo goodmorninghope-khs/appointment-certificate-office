@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>위촉·임명장 발급소</title>
+<style>
+/* Layout: 관공서 결재판 — 왼쪽은 기안 서식과 결재 단계, 오른쪽은 실제 발급될 문서 미리보기. 인주색은 직인과 결재 상태에만 쓴다. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#18212b; --muted:#5b6673; --line:#d5dbe2;
+  --accent:#b8322a; --accent-ink:#ffffff; --navy:#1f3a5a; --soft:#e4e9ef;
+  --ok:#1f7a4d; --ok-bg:#e3f2ea; --warn:#9a5b00; --warn-bg:#fbf0dc; --bad-bg:#f8e3e1;
+  --f-display:"Nanum Myeongjo","Noto Serif KR","Batang",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121820; --panel:#1a222c; --ink:#e7ebf0; --muted:#9aa6b3; --line:#2e3a47;
+  --accent:#e0564b; --accent-ink:#1a0f0e; --navy:#8fb3da; --soft:#222c38;
+  --ok:#6fcf9b; --ok-bg:#16342a; --warn:#f0b867; --warn-bg:#3a2c14; --bad-bg:#3e1d1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --panel:#1a222c; --ink:#e7ebf0; --muted:#9aa6b3; --line:#2e3a47;
+  --accent:#e0564b; --accent-ink:#1a0f0e; --navy:#8fb3da; --soft:#222c38;
+  --ok:#6fcf9b; --ok-bg:#16342a; --warn:#f0b867; --warn-bg:#3a2c14; --bad-bg:#3e1d1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.status{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok)}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;overflow-x:auto}
+nav.tabs button{font:inherit;font-weight:500;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs .count{font-size:12px;background:var(--soft);border-radius:10px;padding:1px 7px;margin-left:4px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.steps{display:flex;gap:0;margin:0 0 18px;padding:0;list-style:none;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.steps li{flex:1;padding:10px 12px;font-size:13px;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;min-width:0}
+.steps li:last-child{border-right:0}
+.steps .n{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:12px;font-weight:600}
+.steps li.cur{color:var(--ink);font-weight:600;background:var(--soft)}
+.steps li.done{color:var(--ok)}
+.steps li.done .n{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+fieldset{border:0;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+fieldset:last-of-type{margin-bottom:0}
+legend{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--navy);padding:0 0 8px;grid-column:1/-1}
+.full{grid-column:1/-1}
+@media (max-width:520px){fieldset{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+label.inline{flex-direction:row;align-items:center;gap:8px;color:var(--ink)}
+input[type=text],input[type=date],select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:84px;font-family:var(--f-display)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-family:var(--f-display);font-weight:700;font-size:16px;padding:8px;background:var(--bg);color:var(--muted);border:0;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--panel)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{font:inherit;font-weight:600;font-size:14px;padding:10px 16px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.navy{background:var(--navy);border-color:var(--navy);color:var(--panel)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:12.5px;font-weight:500}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:10px;background:var(--warn-bg);color:var(--warn)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.bad{background:var(--bad-bg);color:var(--accent)}
+.checks{display:grid;gap:10px;margin:6px 0 16px}
+.checks label{flex-direction:row;align-items:flex-start;gap:10px;color:var(--ink);font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.checks input{margin-top:4px}
+.summary{display:grid;grid-template-columns:7em minmax(0,1fr);gap:4px 12px;font-size:14px;margin:0 0 16px}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;overflow-wrap:anywhere}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.paper{background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;justify-content:center}
+.paper canvas,.paper img{width:100%;max-width:520px;height:auto;box-shadow:0 1px 2px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.10);background:#fff}
+.preview .cap{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.issued{border:1px solid var(--ok);background:var(--ok-bg);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.issued strong{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.toolbar input{max-width:280px}
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+td .acts{display:flex;gap:6px;flex-wrap:wrap}
+tr.canceled td{color:var(--muted)}
+tr.canceled td.name{text-decoration:line-through}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-family:var(--f-display);font-size:18px;color:var(--ink);margin-bottom:6px}
+.verify{max-width:560px}
+.result{margin-top:16px;padding:16px;border-radius:var(--r);border:1px solid var(--line)}
+.result.ok{background:var(--ok-bg);border-color:var(--ok)}
+.result.bad{background:var(--bad-bg);border-color:var(--accent)}
+.result h3{margin:0 0 6px;font-family:var(--f-display);font-size:19px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;z-index:20;max-width:calc(100vw - 32px)}
+.share{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
+.share h3,.recv h3{margin:0 0 4px;font-family:var(--f-display);font-size:18px}
+.codes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.codes div{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0}
+.codes span{display:block;font-size:11.5px;color:var(--muted)}
+.codes b{font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
+@media (max-width:520px){.codes{grid-template-columns:minmax(0,1fr)}}
+.msg{font-family:var(--f-body);font-size:13.5px;min-height:150px;background:var(--bg)}
+.recv{max-width:980px}
+.recv-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.recv-grid{grid-template-columns:minmax(0,1fr)}}
+.recv-hello{font-family:var(--f-display);font-size:22px;margin:0 0 6px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 22px;padding:0;list-style:none}
+.flow li{font-size:13px;color:var(--muted);border-top:2px solid var(--line);padding-top:8px}
+.flow b{display:block;color:var(--ink);font-size:14px}
+@media (max-width:700px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<title>위촉·임명장 발급소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&amp;family=Nanum+Myeongjo:wght@400;700;800&amp;display=swap">
+<style>
+/* Layout: 관공서 결재판 — 왼쪽은 기안 서식과 결재 단계, 오른쪽은 실제 발급될 문서 미리보기. 인주색은 직인과 결재 상태에만 쓴다. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#18212b; --muted:#5b6673; --line:#d5dbe2;
+  --accent:#b8322a; --accent-ink:#ffffff; --navy:#1f3a5a; --soft:#e4e9ef;
+  --ok:#1f7a4d; --ok-bg:#e3f2ea; --warn:#9a5b00; --warn-bg:#fbf0dc; --bad-bg:#f8e3e1;
+  --f-display:"Nanum Myeongjo","Noto Serif KR","Batang",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121820; --panel:#1a222c; --ink:#e7ebf0; --muted:#9aa6b3; --line:#2e3a47;
+  --accent:#e0564b; --accent-ink:#1a0f0e; --navy:#8fb3da; --soft:#222c38;
+  --ok:#6fcf9b; --ok-bg:#16342a; --warn:#f0b867; --warn-bg:#3a2c14; --bad-bg:#3e1d1b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121820; --panel:#1a222c; --ink:#e7ebf0; --muted:#9aa6b3; --line:#2e3a47;
+  --accent:#e0564b; --accent-ink:#1a0f0e; --navy:#8fb3da; --soft:#222c38;
+  --ok:#6fcf9b; --ok-bg:#16342a; --warn:#f0b867; --warn-bg:#3a2c14; --bad-bg:#3e1d1b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,4vw,34px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.status{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.on{background:var(--ok)}
+nav.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;overflow-x:auto}
+nav.tabs button{font:inherit;font-weight:500;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs .count{font-size:12px;background:var(--soft);border-radius:10px;padding:1px 7px;margin-left:4px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.steps{display:flex;gap:0;margin:0 0 18px;padding:0;list-style:none;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.steps li{flex:1;padding:10px 12px;font-size:13px;color:var(--muted);border-right:1px solid var(--line);display:flex;gap:8px;align-items:center;min-width:0}
+.steps li:last-child{border-right:0}
+.steps .n{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:12px;font-weight:600}
+.steps li.cur{color:var(--ink);font-weight:600;background:var(--soft)}
+.steps li.done{color:var(--ok)}
+.steps li.done .n{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+fieldset{border:0;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+fieldset:last-of-type{margin-bottom:0}
+legend{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--navy);padding:0 0 8px;grid-column:1/-1}
+.full{grid-column:1/-1}
+@media (max-width:520px){fieldset{grid-template-columns:minmax(0,1fr)}}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+label.inline{flex-direction:row;align-items:center;gap:8px;color:var(--ink)}
+input[type=text],input[type=date],select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;width:100%}
+textarea{resize:vertical;min-height:84px;font-family:var(--f-display)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-family:var(--f-display);font-weight:700;font-size:16px;padding:8px;background:var(--bg);color:var(--muted);border:0;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--panel)}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{font:inherit;font-weight:600;font-size:14px;padding:10px 16px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--soft)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.navy{background:var(--navy);border-color:var(--navy);color:var(--panel)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:12.5px;font-weight:500}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:10px;background:var(--warn-bg);color:var(--warn)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.bad{background:var(--bad-bg);color:var(--accent)}
+.checks{display:grid;gap:10px;margin:6px 0 16px}
+.checks label{flex-direction:row;align-items:flex-start;gap:10px;color:var(--ink);font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.checks input{margin-top:4px}
+.summary{display:grid;grid-template-columns:7em minmax(0,1fr);gap:4px 12px;font-size:14px;margin:0 0 16px}
+.summary dt{color:var(--muted)}
+.summary dd{margin:0;overflow-wrap:anywhere}
+.preview{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+.paper{background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;justify-content:center}
+.paper canvas,.paper img{width:100%;max-width:520px;height:auto;box-shadow:0 1px 2px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.10);background:#fff}
+.preview .cap{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.issued{border:1px solid var(--ok);background:var(--ok-bg);border-radius:var(--r);padding:14px 16px;margin-bottom:14px}
+.issued strong{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.toolbar input{max-width:280px}
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;background:var(--soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+td .acts{display:flex;gap:6px;flex-wrap:wrap}
+tr.canceled td{color:var(--muted)}
+tr.canceled td.name{text-decoration:line-through}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-family:var(--f-display);font-size:18px;color:var(--ink);margin-bottom:6px}
+.verify{max-width:560px}
+.result{margin-top:16px;padding:16px;border-radius:var(--r);border:1px solid var(--line)}
+.result.ok{background:var(--ok-bg);border-color:var(--ok)}
+.result.bad{background:var(--bad-bg);border-color:var(--accent)}
+.result h3{margin:0 0 6px;font-family:var(--f-display);font-size:19px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;z-index:20;max-width:calc(100vw - 32px)}
+.share{margin-top:18px;border-top:1px solid var(--line);padding-top:16px}
+.share h3,.recv h3{margin:0 0 4px;font-family:var(--f-display);font-size:18px}
+.codes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
+.codes div{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-width:0}
+.codes span{display:block;font-size:11.5px;color:var(--muted)}
+.codes b{font-variant-numeric:tabular-nums;font-size:15px;overflow-wrap:anywhere}
+@media (max-width:520px){.codes{grid-template-columns:minmax(0,1fr)}}
+.msg{font-family:var(--f-body);font-size:13.5px;min-height:150px;background:var(--bg)}
+.recv{max-width:980px}
+.recv-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:820px){.recv-grid{grid-template-columns:minmax(0,1fr)}}
+.recv-hello{font-family:var(--f-display);font-size:22px;margin:0 0 6px}
+.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 22px;padding:0;list-style:none}
+.flow li{font-size:13px;color:var(--muted);border-top:2px solid var(--line);padding-top:8px}
+.flow b{display:block;color:var(--ink);font-size:14px}
+@media (max-width:700px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>위촉·임명장 발급소</h1>
+      <p class="sub">기안, 검토·결재, 발급번호 부여, 대장 등록을 거쳐 위촉장과 임명장을 PNG 이미지로 발행합니다.</p>
+    </div>
+    <div class="status"><span class="dot on" id="dbDot"></span><span id="dbText">발급대장 공유 저장 중</span></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" class="staff" id="tab-issue" aria-selected="true" data-view="issue">발급하기</button>
+    <button role="tab" class="staff" id="tab-ledger" aria-selected="false" data-view="ledger">발급대장<span class="count" id="ledgerCount">0</span></button>
+    <button role="tab" id="tab-receive" aria-selected="false" data-view="receive">내 위촉장 받기</button>
+    <button role="tab" id="tab-verify" aria-selected="false" data-view="verify">진위확인</button>
+  </nav>
+
+  <!-- 발급하기 -->
+  <section id="view-issue">
+    <ol class="flow">
+      <li><b>1. 기안</b>대상자·직책·임기와 본문을 작성합니다.</li>
+      <li><b>2. 검토·결재</b>확인 항목을 점검하고 결재권자가 승인합니다.</li>
+      <li><b>3. 번호 부여</b>연도별 일련번호와 진위확인코드가 붙습니다.</li>
+      <li><b>4. 발급·전달</b>대장에 등록하고 대상자에게 수령 안내를 보냅니다.</li>
+    </ol>
+    <div class="grid">
+      <div>
+        <ol class="steps" id="steps">
+          <li data-s="1" class="cur"><span class="n">1</span>기안</li>
+          <li data-s="2" class=""><span class="n">2</span>검토·결재</li>
+          <li data-s="3" class=""><span class="n">3</span>발급</li>
+        </ol>
+
+        <!-- Step 1 -->
+        <form class="card" id="step1" novalidate="">
+          <fieldset>
+            <legend>문서 종류</legend>
+            <div class="seg full" role="group" aria-label="문서 종류">
+              <button type="button" id="kind-wi" data-kind="위촉장" aria-pressed="true">위촉장</button>
+              <button type="button" id="kind-im" data-kind="임명장" aria-pressed="false">임명장</button>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>받는 사람</legend>
+            <label>성명 *<input type="text" id="f-name" required=""></label>
+            <label>생년월일<input type="text" id="f-birth" placeholder="1975. 3. 2."></label>
+            <label>소속<input type="text" id="f-aff"></label>
+            <label>직위<input type="text" id="f-pos"></label>
+          </fieldset>
+          <fieldset>
+            <legend>위촉·임명 내용</legend>
+            <label class="full">위촉·임명 직책 *<input type="text" id="f-role" required=""></label>
+            <label>임기 시작<input type="date" id="f-start"></label>
+            <label>임기 종료<input type="date" id="f-end"></label>
+            <label class="full">근거 규정<input type="text" id="f-basis" placeholder="예: ○○위원회 운영 조례 제5조"></label>
+            <label class="inline full"><input type="checkbox" id="f-auto" checked=""> 본문을 입력값으로 자동 작성</label>
+            <label class="full">본문<textarea id="f-body" rows="3" readonly=""></textarea></label>
+            <label>발급일 *<input type="date" id="f-date" required=""></label>
+          </fieldset>
+          <fieldset>
+            <legend>발급 기관</legend>
+            <label class="full">기관명 *<input type="text" id="o-org" required=""></label>
+            <label>기관장 직함 *<input type="text" id="o-title" required=""></label>
+            <label>기관장 성명 *<input type="text" id="o-head" required=""></label>
+            <label>직인 문구<input type="text" id="o-sealtext" placeholder="비우면 기관명+직함+인"></label>
+            <label>직인 이미지 (선택)<input type="file" id="o-seal" accept="image/png,image/jpeg,image/webp"></label>
+            <div class="full btns" style="margin-top:0">
+              <button type="button" class="btn sm" id="saveOrg">기관 정보를 기본값으로 저장</button>
+              <button type="button" class="btn sm" id="clearSeal" hidden="">업로드한 직인 지우기</button>
+            </div>
+          </fieldset>
+          <p class="note" id="err1" hidden=""></p>
+          <div class="btns"><button type="submit" class="btn navy">검토 요청</button></div>
+        </form>
+
+        <!-- Step 2 -->
+        <div class="card" id="step2" hidden="">
+          <dl class="summary" id="summary"></dl>
+          <div class="checks">
+            <label><input type="checkbox" class="chk" id="c1"> 성명·생년월일 표기가 본인 확인 자료와 일치합니다.</label>
+            <label><input type="checkbox" class="chk" id="c2"> 직책과 임기가 의결·결정 내용과 일치합니다.</label>
+            <label><input type="checkbox" class="chk" id="c3"> 근거 규정과 발급 권한을 확인했습니다.</label>
+          </div>
+          <label>결재권자 성명 *<input type="text" id="f-approver"></label>
+          <p class="note" id="err2" hidden=""></p>
+          <div class="btns">
+            <button type="button" class="btn" id="back1">기안 수정</button>
+            <button type="button" class="btn primary" id="approve" disabled="">결재 승인 및 발급번호 부여</button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card" id="step3" hidden="">
+          <div class="issued">
+            <div class="tag ok">발급 완료 · 대장 등록</div>
+            <p style="margin:8px 0 0">발급번호 <strong id="issuedNo"></strong></p>
+            <p style="margin:2px 0 0;font-size:13px;color:var(--muted)">진위확인코드 <span id="issuedCode" style="font-variant-numeric:tabular-nums"></span></p>
+          </div>
+          <p class="note" id="dlNote">PNG 파일(A4 비율, 1240×1754px)로 저장할 수 있습니다.</p>
+          <div class="btns">
+            <button type="button" class="btn primary" id="dlIssued">PNG로 저장</button>
+            <button type="button" class="btn" id="newDoc">새 문서 기안</button>
+            <button type="button" class="btn" id="sameAgain">같은 내용으로 다른 대상자 기안</button>
+          </div>
+          <div class="share">
+            <h3>대상자에게 전달</h3>
+            <p class="note" style="margin:0">대상자는 수령 링크에서 발급번호와 수령코드를 넣고 본인 위촉장을 보고 내려받습니다. 안내문을 문자나 카카오톡으로 보내거나, QR이 들어간 안내 카드를 보내 주세요.</p>
+            <div class="codes">
+              <div><span>수령 링크</span><b id="shUrl"></b></div>
+              <div><span>발급번호</span><b id="shNo"></b></div>
+              <div><span>수령코드</span><b id="shCode"></b></div>
+            </div>
+            <label>보낼 안내문<textarea class="msg" id="shMsg" readonly=""></textarea></label>
+            <div class="btns">
+              <button type="button" class="btn navy" id="copyMsg">안내문 복사</button>
+              <button type="button" class="btn" id="dlCard">QR 안내 카드 PNG 저장</button>
+            </div>
+            <p class="note">수령 링크는 이 페이지의 공유 메뉴에서 대상자도 열 수 있게 공유해야 열립니다. 수령코드는 대상자 본인에게만 보내세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="preview">
+        <div class="paper"><canvas id="cv" width="1240" height="1754" aria-label="문서 미리보기"></canvas><img id="fallbackImg" alt="발급된 문서 이미지" hidden=""></div>
+        <div class="cap"><span id="capLeft">미리보기 · 발급 전 문서에는 ‘발급 전’ 표시가 들어갑니다</span><span>A4 · 1240×1754px</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 발급대장 -->
+  <section id="view-ledger" hidden="">
+    <div class="toolbar">
+      <input type="text" id="q" placeholder="성명, 직책, 발급번호로 찾기" aria-label="발급대장 검색">
+      <span class="note" style="margin:0" id="ledgerNote"></span>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>발급번호</th><th>종류</th><th>성명</th><th>직책</th><th>임기</th><th>발급일</th><th>결재</th><th>상태</th><th>수령</th><th></th></tr></thead>
+        <tbody id="ledgerBody"></tbody>
+      </table>
+      <div class="empty" id="ledgerEmpty"><b>아직 발급한 문서가 없습니다</b>발급하기에서 첫 문서를 결재하면 발급번호와 함께 이곳에 등록됩니다.</div>
+    </div>
+  </section>
+
+  <!-- 내 위촉장 받기 -->
+  <section id="view-receive" hidden="">
+    <div class="recv-grid recv">
+      <form class="card" id="recvForm" novalidate="">
+        <p class="recv-hello" id="recvHello">위촉장·임명장 받기</p>
+        <p style="margin:0 0 14px;color:var(--muted)">발급 기관에서 받은 안내문의 발급번호와 수령코드를 입력하세요.</p>
+        <fieldset style="grid-template-columns:minmax(0,1fr)">
+          <label>발급번호<input type="text" id="r-no" placeholder="2026-001" autocomplete="off"></label>
+          <label>수령코드<input type="text" id="r-code" placeholder="ABCD-2345" autocomplete="off"></label>
+        </fieldset>
+        <div class="btns"><button type="submit" class="btn navy" id="recvBtn">내 문서 열기</button></div>
+        <div id="recvResult"></div>
+        <div class="btns" id="recvActs" hidden="">
+          <button type="button" class="btn primary" id="recvDl">PNG로 저장</button>
+        </div>
+        <p class="note" id="recvNote" hidden="">저장 창이 열리지 않으면 오른쪽 이미지를 길게 누르거나 우클릭해서 저장하세요.</p>
+      </form>
+      <div class="paper" id="recvPaper" hidden=""><img id="recvImg" alt="내 위촉장 이미지"></div>
+    </div>
+  </section>
+
+  <!-- 진위확인 -->
+  <section id="view-verify" hidden="">
+    <form class="card verify" id="verifyForm" novalidate="">
+      <p style="margin:0 0 14px">문서 하단의 발급번호와 진위확인코드를 입력하면 발급 기록과 대조합니다. 누구나 확인할 수 있습니다.</p>
+      <fieldset>
+        <label>발급번호<input type="text" id="v-no" placeholder="2026-001"></label>
+        <label>진위확인코드<input type="text" id="v-code" placeholder="A1B2-C3D4"></label>
+      </fieldset>
+      <div class="btns"><button type="submit" class="btn navy">대조하기</button></div>
+      <div id="verifyResult"></div>
+    </form>
+  </section>
+</div>
+<div class="toast" id="toast" hidden=""></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const W = 1240, H = 1754;
+const FD = '"Nanum Myeongjo","Noto Serif KR",Batang,serif';
+
+/* ---------- state ---------- */
+let kind = '위촉장';
+let customSeal = null;       // dataURL of uploaded seal (downscaled)
+let approved = null;         // {approver}
+let issuedRec = null;        // record just issued
+let ledger = [];             // records from db or memory
+let db = null, me = null, dl = null;
+let acks = {};               // 발급번호 → 수령 기록 (담당자만 읽음)
+let recvRec = null;          // 대상자가 연 문서
+let isStaff = true;
+const pubLocal = new Map();  // db가 없는 화면에서 공개 사본을 대신 보관
+/* 대상자에게 안내할 수령 링크: 이 아티팩트 주소 + #receive */
+const RECEIVE_URL = 'https://claude.ai/artifact/8jdR8WSzYTSXCeXddPxFtf#receive';
+
+const today = new Date();
+const iso = d => new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const plusYears = (d, y) => { const n = new Date(d); n.setFullYear(n.getFullYear()+y); n.setDate(n.getDate()-1); return n; };
+
+/* 예시 값: 처음 열었을 때 작동 모습을 보여 주기 위한 견본 */
+const EXAMPLE = {
+  'f-name':'홍길동','f-birth':'1975. 3. 2.','f-aff':'한빛시장 상인회','f-pos':'회장',
+  'f-role':'골목경제위원회 위원','f-start':iso(new Date(today.getFullYear(), today.getMonth()+1, 1)),
+  'f-basis':'한빛구 골목경제 활성화 조례 제7조','f-date':iso(today),
+  'o-org':'한빛구','o-title':'구청장','o-head':'김한빛'
+};
+EXAMPLE['f-end'] = iso(plusYears(new Date(EXAMPLE['f-start']), 2));
+
+/* ---------- helpers ---------- */
+const val = id => $(id).value.trim();
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,2600); }
+function josaRo(word){
+  const c = word.charCodeAt(word.length-1);
+  if (c < 0xAC00 || c > 0xD7A3) return '(으)로';
+  const jong = (c-0xAC00)%28;
+  return (jong===0 || jong===8) ? '로' : '으로';
+}
+function josaEul(word){
+  const c = word.charCodeAt(word.length-1);
+  if (c < 0xAC00 || c > 0xD7A3) return '을(를)';
+  return (c-0xAC00)%28 ? '을' : '를';
+}
+const dotDate = s => { if(!s) return ''; const [y,m,d]=s.split('-').map(Number); return `${y}. ${m}. ${d}.`; };
+const korDate = s => { if(!s) return ''; const [y,m,d]=s.split('-').map(Number); return `${y}년 ${m}월 ${d}일`; };
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function autoBody(r){
+  const role = r.role || '○○';
+  if (r.kind === '임명장') return `귀하를 ${role}에 임명합니다.`;
+  return `귀하를 ${role}${josaRo(role)} 위촉합니다.`;
+}
+
+function readForm(){
+  const r = {
+    kind, name:val('f-name'), birth:val('f-birth'), aff:val('f-aff'), pos:val('f-pos'),
+    role:val('f-role'), start:$('f-start').value, end:$('f-end').value, basis:val('f-basis'),
+    date:$('f-date').value, org:val('o-org'), title:val('o-title'), head:val('o-head'),
+    sealText:val('o-sealtext')
+  };
+  r.body = $('f-auto').checked ? autoBody(r) : val('f-body');
+  return r;
+}
+function sealTextOf(r){
+  if (r.sealText) return r.sealText.replace(/\s+/g,'');
+  // 기관명 끝과 직함 앞이 겹치면 한 번만 쓴다 (한빛구 + 구청장 → 한빛구청장인)
+  const org = r.org.replace(/\s+/g,''), title = r.title.replace(/\s+/g,'');
+  let k = Math.min(org.length, title.length);
+  while (k > 0 && !org.endsWith(title.slice(0,k))) k--;
+  return org + title.slice(k) + '인';
+}
+
+/* ---------- seal ---------- */
+function seeded(seed){ let s = seed>>>0 || 1; return () => (s = (s*1664525 + 1013904223)>>>0) / 4294967296; }
+function hashStr(s){ let h=2166136261; for (const ch of s){ h^=ch.codePointAt(0); h=Math.imul(h,16777619);} return h>>>0; }
+
+function drawSeal(ctx, text, cx, cy, size){
+  const red = 'rgba(196,38,30,0.88)';
+  const chars = [...text];
+  const n = chars.length || 1;
+  const rows = Math.ceil(Math.sqrt(n));
+  const cols = Math.ceil(n/rows);
+  const x0 = cx-size/2, y0 = cy-size/2;
+  ctx.save();
+  ctx.strokeStyle = red; ctx.lineWidth = size*0.055;
+  ctx.strokeRect(x0+ctx.lineWidth/2, y0+ctx.lineWidth/2, size-ctx.lineWidth, size-ctx.lineWidth);
+  const pad = size*0.12, inner = size-pad*2;
+  const cw = inner/cols, ch = inner/rows;
+  const fs = Math.min(cw, ch)*0.92;
+  ctx.fillStyle = red; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font = `800 ${fs}px ${FD}`;
+  // 전통 직인처럼 오른쪽 열부터 위에서 아래로
+  chars.forEach((c,i) => {
+    const col = cols-1-Math.floor(i/rows), row = i%rows;
+    const x = x0+pad+cw*col+cw/2, y = y0+pad+ch*row+ch/2;
+    ctx.fillText(c,x,y);
+  });
+  // 인주 번짐과 빠짐
+  const rnd = seeded(hashStr(text));
+  ctx.globalCompositeOperation='destination-out';
+  for (let i=0;i<220;i++){ ctx.beginPath(); ctx.arc(x0+rnd()*size, y0+rnd()*size, rnd()*size*0.012+0.4, 0, Math.PI*2); ctx.fill(); }
+  ctx.restore();
+}
+
+/* ---------- certificate render ---------- */
+async function ensureFonts(text){
+  try{
+    await Promise.all([
+      document.fonts.load(`800 110px "Nanum Myeongjo"`, text),
+      document.fonts.load(`700 40px "Nanum Myeongjo"`, text),
+      document.fonts.load(`400 40px "Nanum Myeongjo"`, text)
+    ]);
+  }catch(e){}
+}
+function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+
+function wrapLines(ctx, text, maxW){
+  const out = [];
+  for (const para of text.split('\n')){
+    let line = '';
+    const words = para.split(/(\s+)/);
+    for (const w of words){
+      const test = line + w;
+      if (ctx.measureText(test).width <= maxW){ line = test; continue; }
+      if (line.trim()) { out.push(line.trim()); line = ''; }
+      if (ctx.measureText(w).width <= maxW){ line = w.trimStart(); continue; }
+      for (const ch of w){ if (ctx.measureText(line+ch).width > maxW){ out.push(line); line = ch; } else line += ch; }
+    }
+    out.push(line.trim());
+  }
+  return out;
+}
+
+function guilloche(ctx){
+  ctx.save();
+  ctx.translate(W/2, H*0.52);
+  ctx.strokeStyle = 'rgba(31,58,90,0.055)'; ctx.lineWidth = 1.2;
+  for (let k=0;k<3;k++){
+    ctx.beginPath();
+    const R = 300-k*60, r = 47+k*9, d = 120-k*25;
+    for (let t=0;t<=Math.PI*2*r/ gcd(R,r)+0.01; t+=0.01){
+      const x = (R-r)*Math.cos(t) + d*Math.cos((R-r)/r*t);
+      const y = (R-r)*Math.sin(t) - d*Math.sin((R-r)/r*t);
+      t===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+function gcd(a,b){ return b ? gcd(b, a%b) : a; }
+
+function frame(ctx){
+  const gold = '#8a6a33';
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = 7; ctx.strokeRect(58,58,W-116,H-116);
+  ctx.lineWidth = 2; ctx.strokeRect(80,80,W-160,H-160);
+  // 모서리 회문(回紋)
+  const corner = (x,y,sx,sy) => {
+    ctx.save(); ctx.translate(x,y); ctx.scale(sx,sy);
+    ctx.lineWidth = 3; ctx.beginPath();
+    ctx.moveTo(0,70); ctx.lineTo(0,0); ctx.lineTo(70,0);
+    ctx.moveTo(14,70); ctx.lineTo(14,14); ctx.lineTo(70,14);
+    ctx.moveTo(28,56); ctx.lineTo(28,28); ctx.lineTo(56,28); ctx.lineTo(56,42); ctx.lineTo(42,42);
+    ctx.stroke(); ctx.restore();
+  };
+  corner(96,96,1,1); corner(W-96,96,-1,1); corner(96,H-96,1,-1); corner(W-96,H-96,-1,-1);
+}
+
+async function render(canvas, r, opts){
+  const { draft, no, code } = opts;
+  const ctx = canvas.getContext('2d');
+  const titleChars = [...r.kind].join('   ');
+  const allText = [r.kind, r.name, r.birth, r.aff, r.pos, r.role, r.body, r.org, r.title, r.head, sealTextOf(r),
+    '제호소속직위성명생년월일임기년월일발급번호진위확인코드발급전미리보기~·0123456789.-', no||'', code||''].join('');
+  await ensureFonts(allText);
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle = '#fdfcf8'; ctx.fillRect(0,0,W,H);
+  guilloche(ctx);
+  frame(ctx);
+
+  ctx.fillStyle = '#1b1b1b'; ctx.textBaseline = 'alphabetic';
+  // 발급번호
+  ctx.font = `400 30px ${FD}`; ctx.textAlign = 'left';
+  ctx.fillText(no ? `제 ${no} 호` : '제         호', 160, 220);
+
+  // 제목
+  ctx.font = `800 118px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText(titleChars, W/2, 430);
+
+  // 인적 사항
+  const rows = [['소    속', r.aff], ['직    위', r.pos], ['성    명', r.name], ['생년월일', r.birth]].filter(x => x[1]);
+  let y = 600;
+  ctx.textAlign = 'left';
+  for (const [k,v] of rows){
+    ctx.font = `400 38px ${FD}`; ctx.fillStyle = '#3a3a3a'; ctx.fillText(k, 330, y);
+    ctx.fillText(':', 530, y);
+    ctx.font = `700 42px ${FD}`; ctx.fillStyle = '#1b1b1b'; ctx.fillText(v, 570, y);
+    y += 70;
+  }
+
+  // 본문
+  y += 70;
+  ctx.font = `400 44px ${FD}`; ctx.textAlign = 'left'; ctx.fillStyle = '#1b1b1b';
+  const lines = wrapLines(ctx, r.body || '', W-360);
+  for (const ln of lines){ ctx.fillText(ln, 180, y); y += 80; }
+  if (r.start || r.end){
+    y += 20;
+    ctx.font = `400 38px ${FD}`; ctx.textAlign = 'center';
+    ctx.fillText(`임기  ${dotDate(r.start)} ~ ${dotDate(r.end)}`, W/2, y);
+  }
+
+  // 발급일
+  ctx.font = `400 42px ${FD}`; ctx.textAlign = 'center';
+  ctx.fillText(korDate(r.date), W/2, 1300);
+
+  // 기관장 + 직인
+  const sign = `${r.org} ${r.title}`;
+  ctx.font = `800 58px ${FD}`;
+  const headText = r.head.split('').join(' ');
+  const full = `${sign}   ${headText}`;
+  const fw = ctx.measureText(full).width;
+  const sx = W/2 - fw/2;
+  ctx.textAlign='left'; ctx.fillStyle = '#111';
+  ctx.fillText(full, sx, 1440);
+  const sealSize = 150, scx = sx + fw + sealSize*0.22, scy = 1420;
+  if (r.sealImage){
+    try{ const img = await loadImg(r.sealImage); ctx.save(); ctx.globalAlpha=.9; ctx.globalCompositeOperation='multiply'; ctx.drawImage(img, scx-sealSize/2, scy-sealSize/2, sealSize, sealSize); ctx.restore(); }
+    catch(e){ drawSeal(ctx, sealTextOf(r), scx, scy, sealSize); }
+  } else drawSeal(ctx, sealTextOf(r), scx, scy, sealSize);
+
+  // 하단 진위 정보
+  ctx.font = `400 21px ${FD}`; ctx.fillStyle = '#6b6b6b'; ctx.textAlign = 'center';
+  const foot = no ? `발급번호 ${no}  ·  진위확인코드 ${code}  ·  발급대장 대조로 진위 확인`
+                  : '결재 후 발급번호와 진위확인코드가 부여됩니다';
+  ctx.fillText(foot, W/2, 1560);
+  if (r.basis){ ctx.fillText(`근거: ${r.basis}`, W/2, 1596); }
+
+  if (draft){
+    ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(-Math.PI/7);
+    ctx.font = `800 150px ${FD}`; ctx.fillStyle='rgba(196,38,30,0.13)'; ctx.textAlign='center';
+    ctx.fillText('발급 전 · 미리보기',0,0); ctx.restore();
+  }
+}
+
+/* ---------- verify code ---------- */
+const CANON = ['kind','name','birth','aff','pos','role','start','end','date','org','title','head','body'];
+async function codeFor(no, r){
+  const s = no + '|' + CANON.map(k => r[k]||'').join('|');
+  let hex;
+  try{
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    hex = [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){ hex = hashStr(s).toString(16).padStart(8,'0') + hashStr(s+'#').toString(16).padStart(8,'0'); }
+  hex = hex.slice(0,8).toUpperCase();
+  return hex.slice(0,4)+'-'+hex.slice(4);
+}
+
+/* ---------- 대상자용 공개 사본 ----------
+   공유 db는 컬렉션 단위로만 읽기 권한을 줄 수 있다. 그래서 대상자가 읽는
+   pub 컬렉션에는 수령코드(또는 진위확인코드)로 암호화한 사본만 둔다.
+   문서 id도 번호와 코드의 해시라서 목록을 봐도 누구의 문서인지 알 수 없다. */
+const CODE_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function genCode(){
+  const b = crypto.getRandomValues(new Uint8Array(8));
+  const c = [...b].map(x => CODE_ABC[x % 32]).join('');
+  return c.slice(0,4)+'-'+c.slice(4);
+}
+const normNo = v => v.replace(/^제\s*|\s*호$/g,'').replace(/\s/g,'');
+const normCode = v => { const c = v.toUpperCase().replace(/[^A-Z0-9]/g,''); return c.length===8 ? c.slice(0,4)+'-'+c.slice(4) : c; };
+const b64 = u8 => btoa(String.fromCharCode(...u8));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function sha(s){ const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function keyFor(no, code){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt:new TextEncoder().encode('cert|'+no), iterations:150000, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function seal(no, code, obj){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, await keyFor(no, code), new TextEncoder().encode(JSON.stringify(obj)));
+  return { iv:b64(iv), ct:b64(new Uint8Array(ct)) };
+}
+async function unseal(no, code, box){
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(box.iv) }, await keyFor(no, code), unb64(box.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const pubId = (tag, no, code) => sha(tag+'|'+no+'|'+code).then(h => h.slice(0,40));
+async function pubGet(id){
+  if (!db) return pubLocal.get(id) || null;
+  const snap = await db.collection('pub').doc(id).get();
+  return snap.exists ? snap.data() : null;
+}
+async function pubSet(id, data){ if (db) await db.collection('pub').doc(id).set(data); else pubLocal.set(id, data); }
+const maskName = n => { const a=[...n]; return a.length<=1 ? n : a.length===2 ? a[0]+'*' : a[0]+'*'.repeat(a.length-2)+a[a.length-1]; };
+const RECEIPT_KEYS = ['kind','name','birth','aff','pos','role','start','end','basis','date','org','title','head','sealText','sealImage','body','no','code','status'];
+async function publishPublic(rec){
+  const receipt = {}; RECEIPT_KEYS.forEach(k => { if (rec[k] != null) receipt[k] = rec[k]; });
+  const verify = { no:rec.no, kind:rec.kind, name:maskName(rec.name), role:rec.role, start:rec.start||'', end:rec.end||'',
+    org:rec.org, title:rec.title, date:rec.date, status:rec.status };
+  await pubSet(await pubId('r', rec.no, rec.receiptCode), await seal(rec.no, rec.receiptCode, receipt));
+  await pubSet(await pubId('v', rec.no, rec.code), await seal(rec.no, rec.code, verify));
+}
+
+/* ---------- live preview ---------- */
+let renderQ = null;
+function schedulePreview(){
+  clearTimeout(renderQ);
+  renderQ = setTimeout(() => {
+    if (issuedRec) return;
+    const r = readForm(); r.sealImage = customSeal;
+    if ($('f-auto').checked) $('f-body').value = r.body;
+    render($('cv'), r, { draft:true });
+  }, 120);
+}
+
+/* ---------- steps ---------- */
+function setStep(n){
+  $('step1').hidden = n!==1; $('step2').hidden = n!==2; $('step3').hidden = n!==3;
+  document.querySelectorAll('#steps li').forEach(li => {
+    const s = +li.dataset.s;
+    li.className = s<n ? 'done' : s===n ? 'cur' : '';
+  });
+  $('cv').hidden = false; $('fallbackImg').hidden = true;
+  $('capLeft').textContent = n===3 ? '발급본 · 발급번호와 진위확인코드가 들어간 최종 이미지' : '미리보기 · 발급 전 문서에는 ‘발급 전’ 표시가 들어갑니다';
+}
+
+$('step1').addEventListener('submit', e => {
+  e.preventDefault();
+  const r = readForm();
+  const miss = [];
+  if (!r.name) miss.push('성명'); if (!r.role) miss.push('직책'); if (!r.date) miss.push('발급일');
+  if (!r.org) miss.push('기관명'); if (!r.title) miss.push('기관장 직함'); if (!r.head) miss.push('기관장 성명');
+  if (!r.body) miss.push('본문');
+  if (r.start && r.end && r.end < r.start) miss.push('임기(종료일이 시작일보다 빠름)');
+  if (miss.length){ const p=$('err1'); p.hidden=false; p.textContent = `다음 항목을 확인해 주세요: ${miss.join(', ')}`; return; }
+  $('err1').hidden = true;
+  const items = [['종류',r.kind],['성명',r.name+(r.birth?` (${r.birth})`:'')],['소속·직위',[r.aff,r.pos].filter(Boolean).join(' ')||'—'],
+    ['직책',r.role],['임기',(r.start||r.end)?`${dotDate(r.start)} ~ ${dotDate(r.end)}`:'정함 없음'],['근거',r.basis||'—'],
+    ['본문',r.body],['발급일',korDate(r.date)],['발급 명의',`${r.org} ${r.title} ${r.head}`]];
+  $('summary').innerHTML = items.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
+  document.querySelectorAll('.chk').forEach(c => c.checked = false);
+  updateApprove();
+  setStep(2);
+});
+function updateApprove(){
+  const all = [...document.querySelectorAll('.chk')].every(c => c.checked);
+  $('approve').disabled = !(all && val('f-approver'));
+}
+document.querySelectorAll('.chk').forEach(c => c.addEventListener('change', updateApprove));
+$('f-approver').addEventListener('input', updateApprove);
+$('back1').addEventListener('click', () => setStep(1));
+
+$('approve').addEventListener('click', async () => {
+  const btn = $('approve'); btn.disabled = true; btn.textContent = '발급번호 부여 중…';
+  try{
+    const r = readForm();
+    r.approver = val('f-approver');
+    if (customSeal) r.sealImage = customSeal;
+    const year = (r.date || iso(today)).slice(0,4);
+    const rec = await registerIssue(r, year);
+    issuedRec = rec;
+    await render($('cv'), rec, { draft:false, no:rec.no, code:rec.code });
+    $('issuedNo').textContent = `제 ${rec.no} 호`;
+    $('issuedCode').textContent = rec.code;
+    fillShare(rec);
+    setStep(3);
+    toast(`발급번호 ${rec.no} 부여, 발급대장에 등록했습니다`);
+  }catch(e){
+    const p=$('err2'); p.hidden=false; p.textContent = e && e.code==='quota_exceeded'
+      ? '발급대장 저장 공간이 가득 찼습니다. 오래된 기록을 정리한 뒤 다시 시도해 주세요.'
+      : (e && e.code==='permission_denied') ? '이 문서에 쓰기 권한이 없어 발급대장에 등록하지 못했습니다. 편집 권한을 가진 담당자에게 요청해 주세요.'
+      : `발급대장 등록에 실패했습니다 (${(e&&e.message)||e}). 잠시 후 다시 시도해 주세요.`;
+  }finally{ btn.textContent = '결재 승인 및 발급번호 부여'; updateApprove(); }
+});
+
+async function registerIssue(r, year){
+  const seqs = ledger.filter(x => (x.no||'').startsWith(year+'-')).map(x => parseInt(x.no.split('-')[1],10)||0);
+  let seq = (seqs.length ? Math.max(...seqs) : 0) + 1;
+  for (let attempt=0; attempt<8; attempt++, seq++){
+    const no = `${year}-${String(seq).padStart(3,'0')}`;
+    const code = await codeFor(no, r);
+    const rec = { ...r, no, code, receiptCode: genCode(), seq, year:+year, status:'발급', issuedAt:new Date().toISOString(), issuedBy: me || null };
+    if (!rec.sealImage) delete rec.sealImage;
+    if (db){
+      const ref = db.collection('certs').doc(no);
+      const snap = await ref.get();
+      if (snap.exists) continue;
+      await ref.set(rec);
+      if (!ledger.some(x=>x.no===no)) { ledger.push(rec); renderLedger(); }
+    } else {
+      if (ledger.some(x=>x.no===no)) continue;
+      ledger.push(rec); renderLedger();
+    }
+    await publishPublic(rec);
+    return rec;
+  }
+  throw new Error('발급번호 충돌이 반복됩니다');
+}
+
+/* ---------- download ---------- */
+async function certBlob(rec){
+  const c = document.createElement('canvas'); c.width=W; c.height=H;
+  await render(c, rec, { draft:false, no:rec.no, code:rec.code });
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+/* 저장 창을 열면 true, 열 수 없는 화면이면 false (호출한 쪽이 이미지를 띄운다) */
+async function offerSave(blob, filename){
+  if (!dl) return false;
+  try{ await dl.save({ filename, data: blob }); toast('저장했습니다'); return true; }
+  catch(e){
+    if (e && e.code==='declined') { toast('저장을 취소했습니다'); return true; }
+    if (e && e.code==='rate_limited') { toast('저장 창이 이미 열려 있습니다. 잠시 후 다시 눌러 주세요'); return true; }
+    return false;
+  }
+}
+async function savePng(rec){
+  const blob = await certBlob(rec);
+  if (await offerSave(blob, `${rec.kind}_${rec.no}_${rec.name}.png`)) return;
+  // 저장 기능을 쓸 수 없는 화면: 이미지를 띄워 길게 누르거나 우클릭으로 저장
+  const img = $('fallbackImg'); img.src = URL.createObjectURL(blob);
+  showView('issue'); $('cv').hidden = true; img.hidden = false;
+  $('capLeft').textContent = '이 화면에서는 파일 저장 창을 열 수 없습니다. 이미지를 길게 누르거나 우클릭해 저장하세요';
+}
+
+/* ---------- 대상자에게 전달 ---------- */
+function shareMessage(rec){
+  return `${rec.name} 님, ${rec.org}에서 ${rec.kind}을 발급했습니다.
+
+`+
+    `· 직책: ${rec.role}
+`+((rec.start||rec.end)?`· 임기: ${dotDate(rec.start)} ~ ${dotDate(rec.end)}
+`:'')+
+    `
+아래 링크에서 발급번호와 수령코드를 입력하면 본인 ${rec.kind}을 보고 이미지로 저장할 수 있습니다.
+
+`+
+    `${RECEIVE_URL}
+발급번호: ${rec.no}
+수령코드: ${rec.receiptCode}
+
+`+
+    `수령코드는 본인만 사용하시고 다른 사람에게 알리지 마세요.`;
+}
+function fillShare(rec){
+  $('shUrl').textContent = RECEIVE_URL.replace('https://','');
+  $('shNo').textContent = rec.no;
+  $('shCode').textContent = rec.receiptCode || '—';
+  $('shMsg').value = shareMessage(rec);
+}
+$('copyMsg').addEventListener('click', () => {
+  const t = $('shMsg');
+  const fallback = () => { t.focus(); t.select(); toast('안내문을 선택했습니다. 복사(Ctrl+C)해 주세요'); };
+  try{ navigator.clipboard.writeText(t.value).then(() => toast('안내문을 복사했습니다'), fallback); }catch(e){ fallback(); }
+});
+function drawQR(ctx, text, x, y, size){
+  if (typeof window.qrcode !== 'function') return false;
+  const q = window.qrcode(0, 'M'); q.addData(text); q.make();
+  const n = q.getModuleCount(), m = size/(n+8);
+  ctx.fillStyle = '#fff'; ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = '#111';
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) if (q.isDark(r,c)) ctx.fillRect(Math.floor(x+(c+4)*m), Math.floor(y+(r+4)*m), Math.ceil(m), Math.ceil(m));
+  return true;
+}
+async function cardBlob(rec){
+  const CW=1080, CH=1350, c=document.createElement('canvas'); c.width=CW; c.height=CH;
+  const ctx=c.getContext('2d');
+  await ensureFonts(rec.name+rec.org+rec.kind+rec.role+'님에서을를발급했습니다휴대폰카메라로QR코드비추고발급번호수령코드입력하세요본인만사용직책임기0123456789-~.ABCDEFGHJKLMNPQRSTUVWXYZ');
+  ctx.fillStyle='#f6f4ee'; ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='#1f3a5a'; ctx.fillRect(0,0,CW,250);
+  ctx.fillStyle='#fff'; ctx.textAlign='left';
+  ctx.font=`400 34px ${FD}`; ctx.fillText(rec.org, 80, 110);
+  ctx.font=`800 64px ${FD}`; ctx.fillText(`${rec.kind}이 발급되었습니다`, 80, 190);
+  ctx.fillStyle='#111'; ctx.font=`800 52px ${FD}`; ctx.fillText(`${rec.name} 님`, 80, 350);
+  ctx.font=`400 32px ${FD}`; ctx.fillStyle='#333';
+  ctx.fillText(`직책  ${rec.role}`, 80, 415);
+  if (rec.start||rec.end) ctx.fillText(`임기  ${dotDate(rec.start)} ~ ${dotDate(rec.end)}`, 80, 465);
+  const qrOk = drawQR(ctx, RECEIVE_URL, 80, 540, 420);
+  if (!qrOk){ ctx.font=`400 26px ${FD}`; ctx.fillText(RECEIVE_URL, 80, 760); }
+  ctx.fillStyle='#111'; ctx.font=`700 30px ${FD}`;
+  ctx.fillText('받는 방법', 560, 590);
+  ctx.font=`400 28px ${FD}`; ctx.fillStyle='#333';
+  ['1. 휴대폰 카메라로 QR 코드를 비춥니다','2. 발급번호와 수령코드를 입력합니다','3. 내 '+rec.kind+'을 보고 저장합니다']
+    .forEach((t,i)=>ctx.fillText(t, 560, 650+i*52));
+  ctx.strokeStyle='#b8322a'; ctx.lineWidth=4; ctx.strokeRect(80, 1010, CW-160, 190);
+  ctx.fillStyle='#555'; ctx.font=`400 28px ${FD}`;
+  ctx.fillText('발급번호', 120, 1080); ctx.fillText('수령코드', 120, 1160);
+  ctx.fillStyle='#111'; ctx.font=`800 46px ${FD}`;
+  ctx.fillText(rec.no, 300, 1084); ctx.fillText(rec.receiptCode, 300, 1164);
+  ctx.fillStyle='#777'; ctx.font=`400 24px ${FD}`;
+  ctx.fillText('수령코드는 본인만 사용하세요. 다른 사람에게 보내지 마세요.', 80, 1270);
+  return new Promise(res => c.toBlob(res, 'image/png'));
+}
+$('dlCard').addEventListener('click', async () => {
+  if (!issuedRec) return;
+  const blob = await cardBlob(issuedRec);
+  if (await offerSave(blob, `수령안내_${issuedRec.no}_${issuedRec.name}.png`)) return;
+  const img = $('fallbackImg'); img.src = URL.createObjectURL(blob);
+  $('cv').hidden = true; img.hidden = false;
+  $('capLeft').textContent = '안내 카드 이미지입니다. 길게 누르거나 우클릭해 저장한 뒤 대상자에게 보내세요';
+});
+async function openShare(rec){
+  if (!rec.receiptCode){
+    rec.receiptCode = genCode();
+    if (db) await db.collection('certs').doc(rec.no).update({ receiptCode: rec.receiptCode });
+  }
+  await publishPublic(rec);
+  issuedRec = rec;
+  showView('issue');
+  await render($('cv'), rec, { draft:false, no:rec.no, code:rec.code });
+  $('issuedNo').textContent = `제 ${rec.no} 호`; $('issuedCode').textContent = rec.code;
+  fillShare(rec); setStep(3);
+}
+$('dlIssued').addEventListener('click', () => issuedRec && savePng(issuedRec));
+
+function resetForNew(keepContent){
+  issuedRec = null; approved = null;
+  if (!keepContent){ ['f-name','f-birth','f-aff','f-pos','f-role','f-basis'].forEach(id => $(id).value=''); $('f-start').value=''; $('f-end').value=''; }
+  else { ['f-name','f-birth','f-aff','f-pos'].forEach(id => $(id).value=''); }
+  $('f-approver').value='';
+  setStep(1); schedulePreview(); $('f-name').focus();
+}
+$('newDoc').addEventListener('click', () => resetForNew(false));
+$('sameAgain').addEventListener('click', () => resetForNew(true));
+
+/* ---------- ledger ---------- */
+function renderLedger(){
+  const q = val('q').toLowerCase();
+  const rows = [...ledger].sort((a,b)=> (b.no||'').localeCompare(a.no||''))
+    .filter(r => !q || [r.no,r.name,r.role,r.aff,r.kind].join(' ').toLowerCase().includes(q));
+  $('ledgerCount').textContent = ledger.length;
+  $('ledgerEmpty').hidden = ledger.length>0;
+  if (ledger.length && !rows.length){ $('ledgerEmpty').hidden=false; $('ledgerEmpty').innerHTML='<b>찾는 기록이 없습니다</b>검색어를 바꿔 보세요.'; }
+  else $('ledgerEmpty').innerHTML='<b>아직 발급한 문서가 없습니다</b>발급하기에서 첫 문서를 결재하면 발급번호와 함께 이곳에 등록됩니다.';
+  $('ledgerBody').innerHTML = rows.map(r => {
+    const canceled = r.status==='취소';
+    return `<tr class="${canceled?'canceled':''}" data-no="${esc(r.no)}">
+      <td class="num">${esc(r.no)}</td><td>${esc(r.kind)}</td><td class="name">${esc(r.name)}</td><td>${esc(r.role)}</td>
+      <td style="white-space:nowrap">${(r.start||r.end)?esc(dotDate(r.start)+' ~ '+dotDate(r.end)):'—'}</td>
+      <td style="white-space:nowrap">${esc(dotDate(r.date))}</td><td>${esc(r.approver||'')}</td>
+      <td>${canceled?`<span class="tag bad">취소</span>`:`<span class="tag ok">유효</span>`}</td>
+      <td style="white-space:nowrap">${acks[r.no]?`<span class="tag ok">${esc(dotDate(acks[r.no].firstAt.slice(0,10)))} 수령</span>`:`<span class="tag">미수령</span>`}</td>
+      <td><div class="acts">${canceled?'':`<button class="btn sm" data-act="share">전달</button><button class="btn sm" data-act="dl">PNG</button><button class="btn sm" data-act="cancel">발급 취소</button>`}</div></td></tr>`;
+  }).join('');
+}
+$('q').addEventListener('input', renderLedger);
+$('ledgerBody').addEventListener('click', async e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const no = b.closest('tr').dataset.no; const rec = ledger.find(x=>x.no===no); if (!rec) return;
+  if (b.dataset.act==='dl') savePng(rec);
+  if (b.dataset.act==='share'){ try{ await openShare(rec); }catch(err){ toast('수령 안내를 준비하지 못했습니다. 쓰기 권한을 확인해 주세요'); } }
+  if (b.dataset.act==='cancel'){ b.textContent='한 번 더 누르면 취소'; b.dataset.act='cancel2'; setTimeout(()=>{ if(b.isConnected && b.dataset.act==='cancel2'){ b.dataset.act='cancel'; b.textContent='발급 취소'; } },4000); return; }
+  if (b.dataset.act==='cancel2'){
+    try{
+      if (db) await db.collection('certs').doc(no).update({ status:'취소', canceledAt:new Date().toISOString() });
+      rec.status='취소';
+      // 대상자 사본과 진위확인 사본에도 취소를 반영
+      if (rec.receiptCode) await publishPublic(rec);
+      else await pubSet(await pubId('v', rec.no, rec.code), await seal(rec.no, rec.code, { no:rec.no, kind:rec.kind, name:maskName(rec.name), role:rec.role, start:rec.start||'', end:rec.end||'', org:rec.org, title:rec.title, date:rec.date, status:'취소' }));
+      renderLedger(); toast(`${no} 발급을 취소했습니다`);
+    }catch(err){ toast('취소하지 못했습니다. 쓰기 권한을 확인해 주세요'); }
+  }
+});
+
+/* ---------- verify ---------- */
+const termText = r => (r.start||r.end) ? dotDate(r.start)+' ~ '+dotDate(r.end) : '정함 없음';
+$('verifyForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const no = normNo(val('v-no')), code = normCode(val('v-code'));
+  const box = $('verifyResult');
+  box.innerHTML = '<p class="note">대조하는 중입니다…</p>';
+  let v = null;
+  try{ const doc = await pubGet(await pubId('v', no, code)); if (doc) v = await unseal(no, code, doc); }catch(err){ v = null; }
+  if (!v){ box.innerHTML = `<div class="result bad"><h3>일치하는 발급 기록이 없습니다</h3>발급번호와 진위확인코드를 다시 확인해 주세요. 문서 하단에 함께 적혀 있습니다.</div>`; return; }
+  if (v.status==='취소'){ box.innerHTML = `<div class="result bad"><h3>발급이 취소된 문서입니다</h3>${esc(v.kind)} · ${esc(v.name)} · ${esc(v.role)}</div>`; return; }
+  box.innerHTML = `<div class="result ok"><h3>정상 발급된 문서입니다</h3>
+    <dl class="summary" style="margin:8px 0 0"><dt>종류</dt><dd>${esc(v.kind)}</dd><dt>성명</dt><dd>${esc(v.name)}</dd><dt>직책</dt><dd>${esc(v.role)}</dd>
+    <dt>임기</dt><dd>${esc(termText(v))}</dd><dt>발급 명의</dt><dd>${esc(v.org+' '+v.title)}</dd><dt>발급일</dt><dd>${esc(korDate(v.date))}</dd></dl></div>`;
+});
+
+/* ---------- 내 위촉장 받기 ---------- */
+$('recvForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const no = normNo(val('r-no')), code = normCode(val('r-code'));
+  const box = $('recvResult'), btn = $('recvBtn');
+  $('recvActs').hidden = true; $('recvPaper').hidden = true; $('recvNote').hidden = true; recvRec = null;
+  if (!no || !code){ box.innerHTML = '<div class="result bad">발급번호와 수령코드를 모두 입력해 주세요.</div>'; return; }
+  btn.disabled = true; box.innerHTML = '<p class="note">문서를 찾는 중입니다…</p>';
+  let r = null;
+  try{ const doc = await pubGet(await pubId('r', no, code)); if (doc) r = await unseal(no, code, doc); }catch(err){ r = null; }
+  btn.disabled = false;
+  if (!r){ box.innerHTML = '<div class="result bad"><h3>문서를 찾지 못했습니다</h3>발급번호와 수령코드를 안내문과 똑같이 입력했는지 확인해 주세요. 계속 안 되면 발급 기관에 문의하세요.</div>'; return; }
+  if (r.status==='취소'){ box.innerHTML = `<div class="result bad"><h3>발급이 취소된 문서입니다</h3>이 ${esc(r.kind)}은 발급 기관에서 취소했습니다. 자세한 내용은 ${esc(r.org)}에 문의하세요.</div>`; return; }
+  recvRec = r;
+  $('recvHello').textContent = `${r.name} 님의 ${r.kind}`;
+  box.innerHTML = `<div class="result ok"><h3>본인 문서를 열었습니다</h3>
+    <dl class="summary" style="margin:8px 0 0"><dt>직책</dt><dd>${esc(r.role)}</dd><dt>임기</dt><dd>${esc(termText(r))}</dd><dt>발급 명의</dt><dd>${esc(r.org+' '+r.title)}</dd><dt>발급일</dt><dd>${esc(korDate(r.date))}</dd></dl></div>`;
+  const blob = await certBlob(r);
+  $('recvImg').src = URL.createObjectURL(blob);
+  $('recvPaper').hidden = false; $('recvActs').hidden = false;
+  recordAck(r.no);
+});
+$('recvDl').addEventListener('click', async () => {
+  if (!recvRec) return;
+  const ok = await offerSave(await certBlob(recvRec), `${recvRec.kind}_${recvRec.no}_${recvRec.name}.png`);
+  if (!ok) $('recvNote').hidden = false;
+});
+/* 수령 기록: 대상자가 쓸 수 있는 화면(기여자 이상)에서만 남는다. 담당자가 미리 열어 본 것은 남기지 않는다. */
+async function recordAck(no){
+  if (!db || isStaff) return;
+  try{
+    const ref = db.collection('acks').doc(no);
+    const snap = await ref.get();
+    const now = new Date().toISOString();
+    const prev = snap.exists ? snap.data() : null;
+    await ref.set({ no, firstAt: prev ? prev.firstAt : now, lastAt: now, count: (prev ? prev.count : 0) + 1 });
+  }catch(err){}
+}
+
+/* ---------- tabs ---------- */
+function showView(v){
+  ['issue','ledger','receive','verify'].forEach(k => { $('view-'+k).hidden = k!==v; $('tab-'+k).setAttribute('aria-selected', String(k===v)); });
+}
+/* 대상자 화면: 발급 담당 메뉴를 감추고 받기·진위확인만 보인다 */
+function recipientMode(){
+  isStaff = false;
+  document.querySelectorAll('nav.tabs .staff').forEach(b => b.hidden = true);
+  $('dbText').parentElement.hidden = true;
+  document.querySelector('h1').textContent = '위촉장·임명장 받기';
+  document.querySelector('.sub').textContent = '발급 기관에서 받은 발급번호와 수령코드로 본인 문서를 열고 이미지로 저장합니다.';
+  if ($('view-verify').hidden) showView('receive');
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+const HASH = location.hash.slice(1);
+if (['ledger','verify','receive'].includes(HASH)) showView(HASH);
+
+/* ---------- form wiring ---------- */
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  kind = b.dataset.kind;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+  schedulePreview();
+}));
+$('f-auto').addEventListener('change', () => { $('f-body').readOnly = $('f-auto').checked; schedulePreview(); });
+$('step1').addEventListener('input', schedulePreview);
+$('o-seal').addEventListener('change', async () => {
+  const f = $('o-seal').files[0]; if (!f) return;
+  try{
+    const img = await loadImg(URL.createObjectURL(f));
+    const c = document.createElement('canvas'); const s = 260; c.width=s; c.height=s;
+    const k = Math.min(s/img.width, s/img.height);
+    c.getContext('2d').drawImage(img, (s-img.width*k)/2, (s-img.height*k)/2, img.width*k, img.height*k);
+    customSeal = c.toDataURL('image/png'); $('clearSeal').hidden=false; schedulePreview();
+  }catch(e){ toast('이미지를 읽지 못했습니다. PNG나 JPG 파일을 골라 주세요'); }
+});
+$('clearSeal').addEventListener('click', () => { customSeal=null; $('o-seal').value=''; $('clearSeal').hidden=true; schedulePreview(); });
+
+$('saveOrg').addEventListener('click', async () => {
+  const org = { org:val('o-org'), title:val('o-title'), head:val('o-head'), sealText:val('o-sealtext'), sealImage: customSeal || null };
+  try{ localStorage.setItem('rea-cert-org', JSON.stringify(org)); }catch(e){}
+  if (db){ try{ await db.doc('settings/org').set(org); toast('기관 정보를 모든 담당자의 기본값으로 저장했습니다'); return; }catch(e){} }
+  toast('기관 정보를 이 브라우저에 저장했습니다');
+});
+function applyOrg(o){
+  if (!o) return;
+  if (o.org) $('o-org').value=o.org; if (o.title) $('o-title').value=o.title; if (o.head) $('o-head').value=o.head;
+  $('o-sealtext').value = o.sealText||'';
+  if (o.sealImage){ customSeal=o.sealImage; $('clearSeal').hidden=false; }
+}
+
+/* ---------- boot ---------- */
+for (const [id,v] of Object.entries(EXAMPLE)) $(id).value = v;
+$('f-body').readOnly = true;
+try{ applyOrg(JSON.parse(localStorage.getItem('rea-cert-org')||'null')); }catch(e){}
+setStep(1);
+schedulePreview();
+renderLedger();
+
+(async () => {
+  if (!window.claude || !window.claude.use) { $('dbText').textContent = '발급대장: 이 화면에서만 유지'; return; }
+  claude.use('downloads').then(x => { dl = x; });
+  claude.use('user').then(async u => {
+    if (!u) return;
+    try{ me = await u.id(); }catch(e){}
+    try{ if (!(await u.canEdit())) recipientMode(); }catch(e){}
+  });
+  db = await claude.use('db');
+  if (!db){ $('dbText').textContent = '발급대장: 이 화면에서만 유지 (로그인 시 공유 저장)'; return; }
+  $('dbDot').classList.add('on'); $('dbText').textContent = '발급대장 공유 저장 중';
+  if (!isStaff) return;
+  db.collection('acks').onSnapshot(snap => { acks = {}; snap.docs.forEach(d => acks[d.id] = d.data()); renderLedger(); }, () => {});
+  db.doc('settings/org').get().then(s => { if (s.exists){ applyOrg(s.data()); schedulePreview(); } }).catch(()=>{});
+  db.collection('certs').onSnapshot(snap => {
+    const local = ledger.filter(x => !snap.docs.some(d => d.id===x.no) && x._local);
+    ledger = snap.docs.map(d => ({ ...d.data() })).concat(local);
+    renderLedger();
+  }, err => { $('dbDot').classList.remove('on'); $('dbText').textContent = '발급대장 연결이 끊겼습니다. 새로고침해 주세요'; });
+})();
+})();
+</script>
+</body>
+</html>
