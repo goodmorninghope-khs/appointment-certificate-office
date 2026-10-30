@@ -17,3 +17,13 @@ Claude 아티팩트 「위촉·임명장 발급소」(https://claude.ai/artifact
 - 실제 개인정보, 관인 이미지, 인증정보를 이 저장소에 올리지 마세요. 예시값(홍길동·한빛구·김한빛)은 견본입니다.
 - 진위확인은 "발급 기록 대조"이며 이미지 위변조 판별이나 전자서명이 아닙니다. 서버 권한검사·조회 횟수 제한·전자서명은 아티팩트 구조상 v2에도 없습니다. 공식 운영 전 서버 조회·권한 분리가 필요합니다.
 - 법·규정(사무전결, 관인, 개인정보, 기록물 보존) 관련 내용은 담당 부서 확인이 필요합니다.
+
+## 연계 (밸류체인)
+
+이 저장소는 [policy-media-desk](https://github.com/goodmorninghope-khs/policy-media-desk) 밸류체인의 **⑥ 기록** 고리다. 상태: 제안 (발행인 확인 후 실제로 이으면 '연계'로 바꾼다).
+
+- 받음: 독자 패널·외부 필진·AI파트너즈 위촉이 생기면 위촉장 발급
+- 넘김: 위촉된 사람 → PEOPLE 지면 소개 후보
+- 넘길 때는 출처 지면(지면명·호수·날짜·링크)과 '닿는 공약'을 붙이고, 침은 의견으로 남긴다. 결정은 받는 고리의 책임자가 한다.
+
+전체 사슬: [references/value-chain.md](https://github.com/goodmorninghope-khs/policy-media-desk/blob/main/references/value-chain.md)
